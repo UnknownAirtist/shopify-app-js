@@ -1,4 +1,4 @@
-name: POC Secret Exfiltration Demo
+name: POC Test
 on:
   pull_request_target:
   workflow_dispatch:
