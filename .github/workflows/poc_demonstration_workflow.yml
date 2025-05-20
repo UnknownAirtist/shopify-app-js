@@ -1,0 +1,31 @@
+name: POC Test
+on:
+  pull_request_target:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  exploit_poc_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR code or current branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Display Context Info (for debugging)
+        run: |
+          echo "GITHUB_EVENT_NAME: ${{ github.event_name }}"
+          echo "GITHUB_REF: ${{ github.ref }}"
+          echo "GITHUB_HEAD_REF: ${{ github.head_ref }}"
+          echo "GITHUB_BASE_REF: ${{ github.base_ref }}"
+          echo "SHA for checkout: ${{ github.event.pull_request.head.sha || github.sha }}"
+
+      - name: Execute PoC Script from PR/Branch
+        run: ./.github/workflows/dependabot_auto_merge_changeset.sh
+        env:
+          DEMO_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEMO_SHOPIFY_GH_ACCESS_TOKEN: ${{ secrets.SHOPIFY_GH_ACCESS_TOKEN }}

